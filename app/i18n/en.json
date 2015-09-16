@@ -1,0 +1,27 @@
+{
+    "dashboard": {
+        "WELCOME": "Welcome to {{appName}}"
+    },
+    "topbar": {
+        "search": {
+            "PLACEHOLDER": "Type and hit enter.."
+        }
+    },
+    "sidebar": {
+        "WELCOME": "Welcome",
+        "HOME": "Organization",
+        "heading": {
+            "HEADER": "Main Navigation"
+        },
+        "nav": {
+            "SINGLEVIEW": "Table View",
+            "menu": {
+                "MENU": "Organizations",
+                "SUBMENU1": "Organization 1",
+                "SUBMENU2": "Organization 2",
+                "SUBMENU3": "Organization 3",
+                "SUBMENU4": "Organization 4"
+            }
+        }
+    }
+}
