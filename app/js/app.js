@@ -1489,11 +1489,11 @@
 
     angular
         .module('app.tables')
-        .service('DataTableService', DataTableService)
+        .factory('DataTableService', DataTableService)
         .controller('DataTableController', DataTableController);
 
-    DataTableController.$inject = ['$rootScope', '$resource', '$state', 'DTOptionsBuilder', 'DTColumnDefBuilder', 'DataTableService'];
-    function DataTableController($rootScope, $resource, $state, DTOptionsBuilder, DTColumnDefBuilder,DataTableService   ) {
+    DataTableController.$inject = ['$rootScope', '$resource', '$state', '$modal', 'DTOptionsBuilder', 'DTColumnDefBuilder', 'DataTableService'];
+    function DataTableController($rootScope, $resource, $state, $modal, DTOptionsBuilder, DTColumnDefBuilder,DataTableService   ) {
         var vm = this;
 
         activate();
@@ -1513,17 +1513,13 @@
             else {
                 $rootScope.app.layout.isCollapsed = true;
             }
-            $resource('server/organization.json').query().$promise.then(function(persons) {
-               vm.persons = persons;
             
-            });
-            // console.log("DataTableService : "+DataTableService.getData(function() {
-            //     vm.personData = DataTableService.persons;
-            // }));
-            // console.log(DataTableService.getData());
-            // vm.persons = DataTableService.getData();
-                            //Changing data
-
+            DataTableService.getData().then(
+                function(data) {
+                    vm.persons = data;
+                }
+            ); // Use the factory below
+            
             vm.dtOptions = DTOptionsBuilder.newOptions().withPaginationType('full_numbers');
             vm.dtColumnDefs = [
                 DTColumnDefBuilder.newColumnDef(0),
@@ -1554,77 +1550,6 @@
             function removePerson(index) {
                 vm.persons.splice(index, 1);
             }
-        }
-    };
-    
-    DataTableService.$inject = ['$http', '$q', '$rootScope'];
-    function DataTableService($http, $q, $rootScope) {
-        var service = {};
-
-        service.fetchDataTables = function(url, params) {
-            var deferred = $q.deferred();
-
-            var success = function (data) {
-                deferred.resolve(data);
-            };
-
-            var error = function (error) {
-                deferred.reject(error);
-            }
-
-            $http.get(url, params)
-                .then(success, error);  
-
-            return deferred.promise;
-        };
-
-        service.addToDataTables = function(url, params) {
-            var deferred = $q.deferred();
-
-            var success = function (data) {
-                deferred.resolve(data);
-            };
-
-            var error = function (error) {
-                deferred.reject(error);
-            };
-
-            $http.post(url, params)
-                .then(success, error);  
-
-            return deferred.promise;
-        };
-
-        return service;
-    };
-
-    // dt.fetchDataTables('', {}).then()
-
-
-})();
-
-/**=========================================================
- * Module: modals.js
- * Provides a simple way to implement bootstrap modals from templates
- =========================================================*/
-(function() {
-    'use strict';
-
-    angular
-        .module('app.bootstrapui',['app.tables'])
-        .controller('ModalController', ModalController);
-
-    ModalController.$inject = ['$modal', 'DataTableService'];
-    function ModalController($modal, DataTableService) {
-        var vm = this;
-        
-        activate();
-
-        ////////////////
-
-        function activate() {
-
-            vm.person2Add = DataTableService.data;
 
             vm.openAdd = function (size) {
 
@@ -1634,12 +1559,6 @@
                     size: size
                 });
 
-                /*var state = $('#modal-state');
-                modalInstance.result.then(function () {
-                    state.text('Modal dismissed with OK status');
-                }, function () {
-                    state.text('Modal dismissed with Cancel status');
-                });*/
             };
 
             vm.openEdit = function (size) {
@@ -1650,25 +1569,26 @@
                     size: size
                 });
                 
-                /*var state = $('#modal-state');
-                modalInstance.result.then(function () {
-                    state.text('Modal dismissed with OK status');
-                }, function () {
-                    state.text('Modal dismissed with Cancel status');
-                });*/
             };
 
             // Please note that $modalInstance represents a modal window (instance) dependency.
             // It is not the same as the $modal service used above.
 
-            ModalInstanceCtrl.$inject = ['$scope', '$modalInstance'];
-            function ModalInstanceCtrl($scope, $modalInstance) {
+            ModalInstanceCtrl.$inject = ['$scope', '$modalInstance', 'DataTableService'];
+            function ModalInstanceCtrl($scope, $modalInstance, DataTableService) {
+                $scope.person2Add = _buildPerson2Add(1);
 
-                $scope.person2Add = DataTableService.data;
+                function _buildPerson2Add(id) {
+                    return {
+                        name: 'Organization' + id,
+                        address: 'Address',
+                        description: 'Description'
+                    };
+                }
 
                 $scope.ok = function () {
                     $modalInstance.close('closed');
-                    
+                    DataTableService.addData($scope.person2Add);
                 };
 
                 $scope.cancel = function () {
@@ -1676,9 +1596,52 @@
                 };
             }
         }
-    }
+        
+    };
+    
+    DataTableService.$inject = ['$http', '$q', '$rootScope'];
+    function DataTableService($http, $q, $rootScope) {
+        return {
+            getData: function() {
+                var deferred = $q.defer();
+                $http.get('server/organization.json').success(function(data) {
+                    deferred.resolve(data);
+                }).error(function() {
+                    deferred.reject();
+                });
+                return deferred.promise;
+            },
+            addData: function(org2Add) {
+                console.log(org2Add);
+            }
+        }
+        /*var service = {};
+
+        service.fetchDataTables = function('server/organization.json', params) {
+            var deferred = $q.deferred();
+
+            var success = function (data) {
+                deferred.resolve(data);
+                this.orgs = data;
+            };
+
+            var error = function (error) {
+                deferred.reject(error);
+            }
+
+            $http.get('server/organization.json')
+                .then(success, error);  
+
+            return deferred.promise;
+        };
+
+        
+
+        return service;*/
+    };
 
 })();
+
 
 /**=========================================================
  * Module: sweetalert.js
