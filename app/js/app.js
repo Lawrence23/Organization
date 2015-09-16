@@ -1527,25 +1527,25 @@
                 DTColumnDefBuilder.newColumnDef(2),
                 // DTColumnDefBuilder.newColumnDef(3).notSortable()
             ];
-            vm.person2Add = _buildPerson2Add(1);
+            // vm.person2Add = _buildPerson2Add(1);
             vm.addPerson = addPerson;
             vm.modifyPerson = modifyPerson;
             vm.removePerson = removePerson;
 
-            function _buildPerson2Add(id) {
+            /*function _buildPerson2Add(id) {
                 return {
                     name: 'Organization' + id,
                     address: 'Address',
                     description: 'Description'
                 };
-            }
-            function addPerson() {
-                vm.persons.push(angular.copy(vm.person2Add));
-                vm.person2Add = _buildPerson2Add(vm.person2Add.id + 1);
+            }*/
+            function addPerson(person2Add) {
+                vm.persons.push(angular.copy(person2Add));
+                //vm.person2Add = _buildPerson2Add(vm.person2Add.id + 1);
             }
             function modifyPerson(index) {
                 vm.persons.splice(index, 1, angular.copy(vm.person2Add));
-                vm.person2Add = _buildPerson2Add(vm.person2Add.id + 1);
+                //vm.person2Add = _buildPerson2Add(vm.person2Add.id + 1);
             }
             function removePerson(index) {
                 vm.persons.splice(index, 1);
@@ -1580,16 +1580,21 @@
 
                 function _buildPerson2Add(id) {
                     return {
-                        name: 'Organization' + id,
-                        address: 'Address',
-                        description: 'Description'
+                        name: '',
+                        address: '',
+                        description: '',
+                        value: 'true'
                     };
                 }
 
-                $scope.ok = function () {
+                $scope.add = function () {
                     $modalInstance.close('closed');
-                    DataTableService.addData($scope.person2Add);
+                    vm.addPerson($scope.person2Add);
                 };
+
+                $scope.edit = function () {
+                    $modalInstance.close('closed');
+                }
 
                 $scope.cancel = function () {
                     $modalInstance.dismiss('cancel');
@@ -1610,9 +1615,6 @@
                     deferred.reject();
                 });
                 return deferred.promise;
-            },
-            addData: function(org2Add) {
-                console.log(org2Add);
             }
         }
         /*var service = {};
