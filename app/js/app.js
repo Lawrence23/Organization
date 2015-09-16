@@ -1538,9 +1538,9 @@
 
             function _buildPerson2Add(id) {
                 return {
-                    name: id,
-                    addrss: 'Foo' + id,
-                    description: 'Bar' + id
+                    name: 'Organization' + id,
+                    address: 'Address',
+                    description: 'Description'
                 };
             }
             function addPerson() {
