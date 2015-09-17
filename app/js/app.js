@@ -25,20 +25,12 @@
             'app.loadingbar',
             'app.translate',
             'app.settings',
-            'app.bootstrapui',
-            'app.elements',
             'app.pages',
             'app.tables',
             'app.utils',
         ]);
 })();
 
-(function() {
-    'use strict';
-
-    angular
-        .module('app.bootstrapui', []);
-})();
 (function() {
     'use strict';
 
@@ -63,12 +55,6 @@
             'ngResource',
             'ui.utils'
         ]);
-})();
-(function() {
-    'use strict';
-
-    angular
-        .module('app.elements', []);
 })();
 (function() {
     'use strict';
@@ -1492,14 +1478,12 @@
         .factory('DataTableService', DataTableService)
         .controller('DataTableController', DataTableController);
 
-    DataTableController.$inject = ['$rootScope', '$resource', '$state', '$modal', 'DTOptionsBuilder', 'DTColumnDefBuilder', 'DataTableService'];
-    function DataTableController($rootScope, $resource, $state, $modal, DTOptionsBuilder, DTColumnDefBuilder,DataTableService   ) {
+    DataTableController.$inject = ['$rootScope', '$resource', '$state', '$modal', 'DTOptionsBuilder', 'DTColumnDefBuilder', 'DataTableService', 'SweetAlert'];
+    function DataTableController($rootScope, $resource, $state, $modal, DTOptionsBuilder, DTColumnDefBuilder,DataTableService, SweetAlert) {
         var vm = this;
 
         activate();
 
-        ////////////////
-        //console.log(persons);
         function activate() {
 
             // Ajax
@@ -1519,55 +1503,106 @@
                     vm.persons = data;
                 }
             ); // Use the factory below
-            
+
             vm.dtOptions = DTOptionsBuilder.newOptions().withPaginationType('full_numbers');
             vm.dtColumnDefs = [
                 DTColumnDefBuilder.newColumnDef(0),
                 DTColumnDefBuilder.newColumnDef(1),
                 DTColumnDefBuilder.newColumnDef(2),
-                // DTColumnDefBuilder.newColumnDef(3).notSortable()
+                DTColumnDefBuilder.newColumnDef(3).notSortable()
             ];
-            // vm.person2Add = _buildPerson2Add(1);
+            
+            vm.checkboxCount = 0;
+            vm.orgArray = [];
             vm.addPerson = addPerson;
             vm.modifyPerson = modifyPerson;
             vm.removePerson = removePerson;
+            vm.isSelected = isSelected;
 
-            /*function _buildPerson2Add(id) {
-                return {
-                    name: 'Organization' + id,
-                    address: 'Address',
-                    description: 'Description'
-                };
-            }*/
             function addPerson(person2Add) {
                 vm.persons.push(angular.copy(person2Add));
                 //vm.person2Add = _buildPerson2Add(vm.person2Add.id + 1);
             }
-            function modifyPerson(index) {
-                vm.persons.splice(index, 1, angular.copy(vm.person2Add));
+            function modifyPerson(org2Add,index) {
+                vm.persons.splice(index, 1, angular.copy(org2Add));
                 //vm.person2Add = _buildPerson2Add(vm.person2Add.id + 1);
             }
-            function removePerson(index) {
-                vm.persons.splice(index, 1);
+            function removePerson(orgArray) {
+                for(var i=orgArray.length-1;i>=0;i--) {
+                    console.log(orgArray[i]);
+                    vm.persons.splice(orgArray[i], 1);
+                }
+            
             }
+            function isSelected(person,index) {
+                if(person.value && vm.checkboxCount == 0) {
+                    vm.checkboxCount++;
+                    vm.orgArray.push(index);
+                    vm.Org = person;
+                    vm.OrgIndex = index;
+                    console.log(vm.orgArray);
+                }
+                else if(person.value) {
+                    vm.orgArray.push(index);
+                    vm.checkboxCount++;
+                    console.log(vm.orgArray);
+                }
+                else {
+                    vm.orgArray.splice(index,1);
+                    vm.checkboxCount--;
+                    vm.Org = [];
+                    vm.OrgIndex = null;
+                    console.log(vm.orgArray);
+                }
+            }
+            vm.AlertChecked = false;
+            vm.alert = function() {
+                SweetAlert.swal('Please select only 1 record!');
+            };
+            vm.alert2 = function() {
+                SweetAlert.swal('Please select a record!');
+            };
+            vm.delete = function() {
+                if(vm.checkboxCount == 0) {
+                    SweetAlert.swal('Please select atleast a record!');
+                }
+                else {
+                    SweetAlert.swal({   
+                        title: 'Are you sure?',   
+                        text: 'Your will not be able to recover this record!',   
+                        type: 'warning',   
+                        showCancelButton: true,   
+                        confirmButtonColor: '#DD6B55',   
+                        confirmButtonText: 'Yes, delete it!',
+                        closeOnConfirm: false
+                    },  function(){
+                        vm.removePerson(vm.orgArray);
+                        vm.orgArray = [];  
+                        SweetAlert.swal('Record Successfully Deleted!');
+                    });
+                }
+            };
 
             vm.openAdd = function (size) {
-
                 var modalInstance = $modal.open({
                     templateUrl: '/addData.html',
                     controller: ModalInstanceCtrl,
                     size: size
-                });
-
+                }); 
             };
 
-            vm.openEdit = function (size) {
-
-                var modalInstance = $modal.open({
-                    templateUrl: '/editData.html',
-                    controller: ModalInstanceCtrl,
-                    size: size
-                });
+            vm.openEdit = function (size,org) {
+                if(vm.checkboxCount==1) {
+                    var modalInstance = $modal.open({
+                        templateUrl: '/editData.html',
+                        controller: ModalInstanceCtrl,
+                        size: size
+                    });
+                }
+                else if(vm.checkboxCount==0) {
+                    vm.alert2();
+                }
+                else vm.alert();
                 
             };
 
@@ -1577,13 +1612,17 @@
             ModalInstanceCtrl.$inject = ['$scope', '$modalInstance', 'DataTableService'];
             function ModalInstanceCtrl($scope, $modalInstance, DataTableService) {
                 $scope.person2Add = _buildPerson2Add(1);
+                $scope.org2Add = _buildOrg2Add();
 
+                function _buildOrg2Add() {
+                    return vm.Org
+                }
                 function _buildPerson2Add(id) {
                     return {
                         name: '',
                         address: '',
                         description: '',
-                        value: 'true'
+                        value: false
                     };
                 }
 
@@ -1593,7 +1632,10 @@
                 };
 
                 $scope.edit = function () {
+                    $scope.org2Add = vm.Org;
+                    $scope.index = vm.OrgIndex;
                     $modalInstance.close('closed');
+                    vm.modifyPerson($scope.org2Add,$scope.index);
                 }
 
                 $scope.cancel = function () {
@@ -1615,6 +1657,9 @@
                     deferred.reject();
                 });
                 return deferred.promise;
+            },
+            getIndex: function() {
+
             }
         }
         /*var service = {};
@@ -1644,83 +1689,6 @@
 
 })();
 
-
-/**=========================================================
- * Module: sweetalert.js
- =========================================================*/
-
-(function() {
-    'use strict';
-
-    angular
-        .module('app.elements')
-        .controller('SweetAlertController', SweetAlertController);
-
-    SweetAlertController.$inject = ['SweetAlert'];
-    function SweetAlertController(SweetAlert) {
-        var vm = this;
-        
-        activate();
-
-        ////////////////
-
-        function activate() {
-          vm.demo1 = function() {
-            SweetAlert.swal('Here\'s a message');
-          };
-
-          vm.demo2 = function() {
-            SweetAlert.swal('Here\'s a message!', 'It\'s pretty, isn\'t it?');
-          };
-
-          vm.demo3 = function() {
-            SweetAlert.swal('Good job!', 'You clicked the button!', 'success');
-          };
-
-          vm.demo4 = function() {
-            SweetAlert.swal({   
-              title: 'Are you sure?',   
-              text: 'Your will not be able to recover this imaginary file!',   
-              type: 'warning',   
-              showCancelButton: true,   
-              confirmButtonColor: '#DD6B55',   
-              confirmButtonText: 'Yes, delete it!',
-              closeOnConfirm: false
-            },  function(){  
-              SweetAlert.swal('Booyah!');
-            });
-          };
-
-          vm.demo5 = function() {
-            SweetAlert.swal({   
-              title: 'Are you sure?',   
-              text: 'Your will not be able to recover this imaginary file!',   
-              type: 'warning',   
-              showCancelButton: true,   
-              confirmButtonColor: '#DD6B55',   
-              confirmButtonText: 'Yes, delete it!',   
-              cancelButtonText: 'No, cancel plx!',   
-              closeOnConfirm: false,   
-              closeOnCancel: false 
-            }, function(isConfirm){  
-              if (isConfirm) {     
-                SweetAlert.swal('Deleted!', 'Your imaginary file has been deleted.', 'success');   
-              } else {     
-                SweetAlert.swal('Cancelled', 'Your imaginary file is safe :)', 'error');   
-              } 
-            });
-          };
-
-          vm.demo6 = function() {
-            SweetAlert.swal({   
-              title: 'Sweet!',   
-              text: 'Here\'s a custom image.',   
-              imageUrl: 'http://oitozero.com/img/avatar.jpg' 
-            });
-          };
-        }
-    }
-})();
 
 
 /**=========================================================
