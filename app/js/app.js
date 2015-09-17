@@ -1544,17 +1544,17 @@
                     vm.orgIndexArray.push(index);
                     vm.Org = person;
                     vm.OrgIndex = index;
-                    /*console.log("Index:"+index);
+                    console.log("Index:"+index);
                     console.log("CheckboxCount:"+vm.checkboxCount);
-                    console.log("orgIndexArray:"+vm.orgIndexArray);*/
+                    console.log("orgIndexArray:"+vm.orgIndexArray);
                 }
                 else if(person.value) {
                     vm.orgArray.push(person);
                     vm.orgIndexArray.push(index);
                     vm.checkboxCount++;
-                    /*console.log("Index:"+index);
+                    console.log("Index:"+index);
                     console.log("CheckboxCount:"+vm.checkboxCount);
-                    console.log("orgIndexArray:"+vm.orgIndexArray);*/
+                    console.log("orgIndexArray:"+vm.orgIndexArray);
 
                 }
                 else {
@@ -1563,10 +1563,9 @@
                     vm.checkboxCount--;
                     vm.Org = [];
                     vm.OrgIndex = null;
-                    /*console.log("Index:"+index);
+                    console.log("Index:"+index);
                     console.log("CheckboxCount:"+vm.checkboxCount);
                     console.log("orgIndexArray:"+vm.orgIndexArray);
-*/
                 }
             }
             vm.AlertChecked = false;
@@ -1591,7 +1590,9 @@
                         closeOnConfirm: false
                     },  function(){
                         vm.removePerson(vm.orgArray);
-                        vm.orgIndexArray = [];  
+                        vm.orgArray = [];
+                        vm.orgIndexArray = [];
+                        vm.checkboxCount = 0;  
                         SweetAlert.swal('Record Successfully Deleted!');
                     });
                 }
@@ -1634,6 +1635,8 @@
                 $scope.org2Add = _buildOrg2Add();
 
                 function _buildOrg2Add() {
+                    console.log("orgArray[0]:"+vm.orgArray[0]);
+                    console.log("orgArray:"+vm.orgArray);
                     return vm.orgArray[0];
                 }
                 function _buildPerson2Add(id) {
@@ -1654,6 +1657,7 @@
                     // $scope.org2Add = vm.Org;
                     $scope.index = vm.orgIndexArray[0];
                     $modalInstance.close('closed');
+                    console.log($scope.org2Add);
                     vm.modifyPerson($scope.org2Add,$scope.index);
                 }
 
