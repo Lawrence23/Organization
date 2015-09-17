@@ -1514,6 +1514,7 @@
             
             vm.checkboxCount = 0;
             vm.orgArray = [];
+            vm.orgIndexArray = [];
             vm.addPerson = addPerson;
             vm.modifyPerson = modifyPerson;
             vm.removePerson = removePerson;
@@ -1524,35 +1525,48 @@
                 //vm.person2Add = _buildPerson2Add(vm.person2Add.id + 1);
             }
             function modifyPerson(org2Add,index) {
+                // console.log(org2Add)
+                // console.log(index)
                 vm.persons.splice(index, 1, angular.copy(org2Add));
                 //vm.person2Add = _buildPerson2Add(vm.person2Add.id + 1);
             }
             function removePerson(orgArray) {
                 for(var i=orgArray.length-1;i>=0;i--) {
-                    console.log(orgArray[i]);
-                    vm.persons.splice(orgArray[i], 1);
+                    // console.log(orgArray[i]);
+                    vm.persons.splice(vm.persons.indexOf(orgArray[i]), 1);
                 }
             
             }
             function isSelected(person,index) {
                 if(person.value && vm.checkboxCount == 0) {
                     vm.checkboxCount++;
-                    vm.orgArray.push(index);
+                    vm.orgArray.push(person);
+                    vm.orgIndexArray.push(index);
                     vm.Org = person;
                     vm.OrgIndex = index;
-                    console.log(vm.orgArray);
+                    /*console.log("Index:"+index);
+                    console.log("CheckboxCount:"+vm.checkboxCount);
+                    console.log("orgIndexArray:"+vm.orgIndexArray);*/
                 }
                 else if(person.value) {
-                    vm.orgArray.push(index);
+                    vm.orgArray.push(person);
+                    vm.orgIndexArray.push(index);
                     vm.checkboxCount++;
-                    console.log(vm.orgArray);
+                    /*console.log("Index:"+index);
+                    console.log("CheckboxCount:"+vm.checkboxCount);
+                    console.log("orgIndexArray:"+vm.orgIndexArray);*/
+
                 }
                 else {
-                    vm.orgArray.splice(index,1);
+                    vm.orgArray.splice(vm.orgArray.indexOf(person),1);
+                    vm.orgIndexArray.splice(vm.orgIndexArray.indexOf(index),1);
                     vm.checkboxCount--;
                     vm.Org = [];
                     vm.OrgIndex = null;
-                    console.log(vm.orgArray);
+                    /*console.log("Index:"+index);
+                    console.log("CheckboxCount:"+vm.checkboxCount);
+                    console.log("orgIndexArray:"+vm.orgIndexArray);
+*/
                 }
             }
             vm.AlertChecked = false;
@@ -1577,7 +1591,7 @@
                         closeOnConfirm: false
                     },  function(){
                         vm.removePerson(vm.orgArray);
-                        vm.orgArray = [];  
+                        vm.orgIndexArray = [];  
                         SweetAlert.swal('Record Successfully Deleted!');
                     });
                 }
@@ -1598,11 +1612,16 @@
                         controller: ModalInstanceCtrl,
                         size: size
                     });
+                    // console.log("CheckboxCount:"+vm.checkboxCount);
                 }
                 else if(vm.checkboxCount==0) {
                     vm.alert2();
+                    // console.log("CheckboxCount:"+vm.checkboxCount);
                 }
-                else vm.alert();
+                else {
+                    // console.log("CheckboxCount:"+vm.checkboxCount);
+                    vm.alert();
+                } 
                 
             };
 
@@ -1615,7 +1634,7 @@
                 $scope.org2Add = _buildOrg2Add();
 
                 function _buildOrg2Add() {
-                    return vm.Org
+                    return vm.orgArray[0];
                 }
                 function _buildPerson2Add(id) {
                     return {
@@ -1632,8 +1651,8 @@
                 };
 
                 $scope.edit = function () {
-                    $scope.org2Add = vm.Org;
-                    $scope.index = vm.OrgIndex;
+                    // $scope.org2Add = vm.Org;
+                    $scope.index = vm.orgIndexArray[0];
                     $modalInstance.close('closed');
                     vm.modifyPerson($scope.org2Add,$scope.index);
                 }
